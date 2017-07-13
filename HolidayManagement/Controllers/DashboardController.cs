@@ -11,16 +11,19 @@ namespace HolidayManagement.Controllers
     [Authorize]
     public class DashboardController : Controller
     {
-        private UserDetailsRepository UserDetailsRepo = new UserDetailsRepository();
+        private UserDetailsRepository userDetailsRepo = new UserDetailsRepository();
+        private TeamRepository teamRepo = new TeamRepository();
+
         // GET: Dashboard
         public ActionResult Index(bool newUser = false)
         {
             DashboardViewModel vM = new DashboardViewModel()
             {
-                Message = newUser ? "hello new" : "hello old"
+                Message = newUser ? "hello new user" : "You are logged in"
             };
 
-            vM.UserList = UserDetailsRepo.GetUsers();
+            vM.UserList = userDetailsRepo.GetUsers();
+            vM.TeamList = teamRepo.GetTeams();
 
             return View(vM);
         }

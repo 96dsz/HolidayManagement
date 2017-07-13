@@ -11,6 +11,7 @@ using Microsoft.Owin.Security;
 using HolidayManagement.Models;
 using HolidayManagement.Repository.Models;
 using HolidayManagement.Repository;
+using System.Collections.Generic;
 
 namespace HolidayManagement.Controllers
 {
@@ -19,6 +20,7 @@ namespace HolidayManagement.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        
 
         public AccountController()
         {
@@ -170,7 +172,7 @@ namespace HolidayManagement.Controllers
                     UserDetails details = new UserDetails();
                     details.FirstName = model.FirstName;
                     details.LastName = model.LastName;
-
+                    details.UserId = user.Id;
                     holidayContext.UsersDetails.Add(details);
                     holidayContext.SaveChanges();
 
@@ -405,6 +407,22 @@ namespace HolidayManagement.Controllers
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
         }
+        [HttpPost]
+        public ActionResult CreateUser (UserDetails model)
+        {
+            bool successed = true;
+            List<string> messages = new List<string>();
+
+            HolidayManagementContext newHolidayManagementContext = new HolidayManagementContext();
+            newHolidayManagementContext.UsersDetails.Add(
+                 new UserDetails() { FirstName = model.FirstName, LastName = model.LastName }
+                );
+
+            newHolidayManagementContext.SaveChanges();
+            return RedirectToAction("Index", "Dashboard");
+            //  return Json(new { successed: true, messages : [], newUser:
+            // newUser}, JsonRequestBehavior.DenyGet);
+        }
 
         //
         // GET: /Account/ExternalLoginFailure
@@ -437,6 +455,7 @@ namespace HolidayManagement.Controllers
         #region Helpers
         // Used for XSRF protection when adding external logins
         private const string XsrfKey = "XsrfId";
+      
 
         private IAuthenticationManager AuthenticationManager
         {
