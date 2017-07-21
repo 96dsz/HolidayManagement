@@ -2,11 +2,14 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace HolidayManagement.Repository.Models
 {
     public class UserDetails
     {
+        public ICollection<IdentityUserRole> UserRole;
+
         [Key]
         public int ID { get; set; }
 

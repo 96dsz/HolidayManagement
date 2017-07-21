@@ -17,7 +17,13 @@
                         <h4 class="modal-title" id="myModalLabel">New User</h4>
                     </div>
                     <div class="modal-body">
+                        <span class="text-warning" data-bind="text: errorMessage"></span>
                         <form>
+                            <input hidden data-bind="value: manageUser.id" />
+                            <div class="form-group">
+                                <label for="firstName">Email:</label>
+                                <input type="text" class="form-control" id="email" data-bind="value: manageUser.email">
+                            </div>
                             <div class="form-group">
                                 <label for="firstName">First Name:</label>
                                 <input type="text" class="form-control" id="firstName" data-bind="value: manageUser.firstName">
@@ -32,7 +38,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="maxdays">Maximum count of available days</label>
-                                <input type="text" class="form-control" id="maxDays" data-bind="value: manageUser.maxDays">
+                                <input type="date" class="form-control" id="maxDays" data-bind="value: manageUser.maxDays">
                             </div>
                             <p>
  
@@ -42,11 +48,22 @@
                        value: manageUser.team.id,
                        optionsCaption: 'Choose...'"></select>
 </p>
+                            <p>
+
+            <select data-bind="options: roleList,
+                       optionsText: 'name',
+                       optionsValue:'id',
+                       value: manageUser.role.id,
+                       optionsCaption: 'Choose...'"></select>
+    </p>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" data-bind="click: createUser">Create User</button>
+                         <button type="button" class="btn btn-primary btn-sm" data-bind="visible: !manageUser.createUser(), click: editUser">
+                            Edit
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bind="visible: manageUser.createUser(), click: createUser">Create User</button>
                     </div>
                </div>
         </div>
@@ -61,9 +78,10 @@
                     <td data-bind="text: email">Email</td>
                     <td data-bind="text: hireDate"></td>
                     <td data-bind="text: maxDays"></td>
+                
 
                     <td>
-                        <button type="button" class="btn btn-primary btn-sm" data-toggle="edit" data-target="#edit">
+                        <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.edit">
                             Edit
                         </button>
                     </td>

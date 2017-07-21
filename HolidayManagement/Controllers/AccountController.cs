@@ -12,6 +12,7 @@ using HolidayManagement.Models;
 using HolidayManagement.Repository.Models;
 using HolidayManagement.Repository;
 using System.Collections.Generic;
+using System.EnterpriseServices.CompensatingResourceManager;
 
 namespace HolidayManagement.Controllers
 {
@@ -20,8 +21,7 @@ namespace HolidayManagement.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
-        
-
+      
         public AccountController()
         {
         }
@@ -407,22 +407,94 @@ namespace HolidayManagement.Controllers
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
         }
+
+    //Create user and edit
         [HttpPost]
-        public ActionResult CreateUser (UserDetails model)
+        public async Task<ActionResult> CreateUser (UserDetails model)
         {
-            bool successed = true;
-            List<string> messages = new List<string>();
+            bool successed = false;
+            string messages = "";
+            try
+            { 
+                var user = new ApplicationUser { UserName = model.AspnetUser.Email, Email = model.AspnetUser.Email };
+                var result = await UserManager.CreateAsync(user, "Password1!");
+               
 
-            HolidayManagementContext newHolidayManagementContext = new HolidayManagementContext();
-            newHolidayManagementContext.UsersDetails.Add(
-                 new UserDetails() { FirstName = model.FirstName, LastName = model.LastName }
-                );
+                if (result.Succeeded)
+                {
 
-            newHolidayManagementContext.SaveChanges();
-            return RedirectToAction("Index", "Dashboard");
-            //  return Json(new { successed: true, messages : [], newUser:
-            // newUser}, JsonRequestBehavior.DenyGet);
+                    HolidayManagementContext newHolidayManagementContext = new HolidayManagementContext();
+
+                    UserDetails userDetails = new UserDetails()
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        UserId = user.Id,
+                        UserRole = user.Roles
+
+                    };
+
+                    newHolidayManagementContext.UsersDetails.Add(userDetails);
+
+                    newHolidayManagementContext.SaveChanges();
+
+                    var rolesList = newHolidayManagementContext.Roles.ToList();
+
+                    if(rolesList.Where(x=>x.Name == "Employee").FirstOrDefault() != null)
+                        await UserManager.AddToRoleAsync(userDetails.UserId, "Employee");
+
+                    successed = true;
+                }
+                else
+                {
+                    messages = result.Errors.First();
+                }
+            }
+            catch (Exception ex)
+            {
+                messages = ex.Message;
+
+            }
+           
+              return Json(new { successed = successed, messages = messages, newUser = model }, JsonRequestBehavior.DenyGet);
+            
         }
+        //
+        public ActionResult GetUserById(int id)
+        {
+            bool successed = false;
+            string messages = "";
+            HolidayManagementContext newHolidayManagementContext = new HolidayManagementContext();
+            UserDetails model = newHolidayManagementContext.UsersDetails.FirstOrDefault(x => x.ID == id);
+
+            return Json(new { successed = successed, messages = messages, user = model }, JsonRequestBehavior.DenyGet);
+        }
+
+
+        public ActionResult EditUser(UserDetails model)
+        {
+            bool successed = false;
+            string messages = "";
+            try
+            {
+                UserDetailsRepository repo = new UserDetailsRepository();
+                successed = repo.EditUserDetail(model);
+                
+
+                if (!successed)
+                    messages = "Email exists!";
+                
+            }
+            catch (Exception ex)
+            {
+                messages = ex.Message;
+
+            }
+           
+            return Json(new { successed = successed, messages = messages }, JsonRequestBehavior.DenyGet);
+
+        }
+
 
         //
         // GET: /Account/ExternalLoginFailure
@@ -446,6 +518,7 @@ namespace HolidayManagement.Controllers
                 {
                     _signInManager.Dispose();
                     _signInManager = null;
+                    
                 }
             }
 
@@ -464,6 +537,8 @@ namespace HolidayManagement.Controllers
                 return HttpContext.GetOwinContext().Authentication;
             }
         }
+
+        public string UserName { get; private set; }
 
         private void AddErrors(IdentityResult result)
         {

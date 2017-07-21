@@ -19,5 +19,10 @@ namespace HolidayManagement.Repository
         {
             return DbContext.BankHolidays.ToList();
         }
+
+        public static implicit operator List<object>(BankHolidayRepository v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
